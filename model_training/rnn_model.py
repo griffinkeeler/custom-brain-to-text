@@ -7,17 +7,18 @@ class GRUDecoder(nn.Module):
     Defines the GRU RNN decoder.
     """
 
-    def __init__(self,
-                 neural_dim,
-                 n_units,
-                 n_days,
-                 n_classes,
-                 rnn_dropout=0.0,
-                 input_dropout=0.0,
-                 n_layers=5,
-                 patch_size=0,
-                 patch_stride=0,
-                 ):
+    def __init__(
+        self,
+        neural_dim,
+        n_units,
+        n_days,
+        n_classes,
+        rnn_dropout=0.0,
+        input_dropout=0.0,
+        n_layers=5,
+        patch_size=0,
+        patch_stride=0,
+    ):
         """
         Attributes
         ----------
@@ -76,7 +77,7 @@ class GRUDecoder(nn.Module):
             hidden_size=self.n_units,
             num_layers=self.n_layers,
             dropout=self.rnn_dropout,
-            batch_first=True, # The first dimension for our input is the batch dim
+            batch_first=True,  # The first dimension for our input is the batch dim
             bidirectional=False,
         )
 
@@ -93,17 +94,14 @@ class GRUDecoder(nn.Module):
                 # Helps solve the exploding/vanishing gradient problem
                 nn.init.xavier_uniform_(param)
 
-        # Output weight matrix: Classes x Units (e.g. 44x128)
+        # Output weight matrix: Classes x Units (e.g. 41x128)
         self.out = nn.Linear(self.n_units, self.n_classes)
         # Xavier initialization of weights
         nn.init.xavier_uniform_(self.out.weight)
 
         # Initialize h0 hidden state vector with shape
         # (layers, batch, recurrent units), (e.g. 1, 1, 128)
-        self.h0 = nn.Parameter(nn.init.xavier_uniform_(
-            torch.zeros(1, 1, self.n_units))
-        )
-
+        self.h0 = nn.Parameter(nn.init.xavier_uniform_(torch.zeros(1, 1, self.n_units)))
 
     def forward(self, x, day_idx, states=None, return_state=False):
         """
@@ -127,7 +125,9 @@ class GRUDecoder(nn.Module):
 
         # Concatenates individual bias vectors for each day
         # shape (days, 1, 512)
-        day_biases = torch.cat([self.day_biases[i] for i in day_idx], dim=0).unsqueeze(1)
+        day_biases = torch.cat([self.day_biases[i] for i in day_idx], dim=0).unsqueeze(
+            1
+        )
 
         # d: neural features, t: time step, b: batch, k: output feature dim
         # For each batch, time step (b, t), multiply neural features by weight matrix (d x k)
@@ -143,21 +143,3 @@ class GRUDecoder(nn.Module):
         # (e.g. 20% of 512 input features)
         if self.input_dropout > 0:
             x = self.day_layer_dropout(x)
-
-
-
-MyGRU = GRUDecoder(
-    neural_dim=512,
-    n_units=128,
-    n_days=45,
-    n_classes=44,
-    rnn_dropout=0.4,
-    input_dropout=0.2,
-    n_layers=2,
-    patch_size=14,
-    patch_stride=4,
-)
-
-
-
-
