@@ -1,7 +1,19 @@
+model:
+  n_input_features: 512 # number of input features in the neural data (2 features per electrode, 256 electrodes)
+  n_units: 512 # number of recurrent units per GRU layer
+  rnn_dropout: 0.4 # dropout rate for the GRU layers
+  n_layers: 3 # number of GRU layers
+  patch_size: 14 # size of input patches (14 time steps)
+  patch_stride: 4 # stride for input patches (4 times steps)
+
+  input_network:
+    input_layer_dropout: 0.2 # dropout rate for the input layer
+
 num_training_batches: 10000
 
 dataset:
   batch_size: 8
+  n_classes: 41 # number of classes (phonemes) in the dataset
   days_per_batch: 4 # number of randomly-selected days to include in each batch
   seed: 1 # random seed for reproducibility
   num_dataloader_workers: 4 # number of workers for the data loader
