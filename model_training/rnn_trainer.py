@@ -5,8 +5,23 @@ from torch.utils.data import DataLoader
 from dataset import BrainToTextDataset, train_test_split_indicies
 from omegaconf import OmegaConf
 
+from rnn_model import GRUDecoder
+
 # Load the yaml args
 args = OmegaConf.load("rnn_args.yaml")
+
+# Initialize the GRU class
+model = GRUDecoder(
+    neural_dim=args['model']['n_input_features'],
+    n_units=args['model']['n_units'],
+    n_days=len(args['dataset']['sessions']),
+    n_classes=args['dataset']['n_classes'],
+    rnn_dropout=args['model']['rnn_dropout'],
+    input_dropout=args['model']['input_network']['input_layer_dropout'],
+    n_layers=args['model']['n_layers'],
+    patch_size=args['model']['patch_size'],
+    patch_stride=args['model']['patch_stride']
+)
 
 # List of paths to each training file
 train_file_paths = [
@@ -27,8 +42,6 @@ train_trials, _ = train_test_split_indicies(
     bad_trials_dict=None,
 )
 
-# Determine if a subset of features should be used
-feature_subset = None
 
 # Initialize the training dataset
 train_dataset = BrainToTextDataset(
@@ -39,16 +52,21 @@ train_dataset = BrainToTextDataset(
     batch_size=args["dataset"]["batch_size"],
     must_include_days=None,
     random_seed=args["dataset"]["seed"],
-    feature_subset=feature_subset,
+    feature_subset=None,
 )
 
-# TODO: what is this?
+# Efficiently feeds data into GRU in batches
 train_loader = DataLoader(
     train_dataset,
-    batch_size=None,
+    batch_size=None, # Dataset.__getitem__ already returns batches
     shuffle=args['dataset']['loader_shuffle'],
     num_workers=args['dataset']['num_dataloader_workers'],
     pin_memory=True
 )
+
+
+
+
+
 
 
