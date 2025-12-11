@@ -100,7 +100,7 @@ class GRUDecoder(nn.Module):
         nn.init.xavier_uniform_(self.out.weight)
 
         # Initialize h0 hidden state vector with shape
-        # (layers, batch, recurrent units), (e.g. 1, 1, 128)
+        # (layer, batch, recurrent units), (e.g. 1, 1, 128)
         self.h0 = nn.Parameter(nn.init.xavier_uniform_(torch.zeros(1, 1, self.n_units)))
 
     def forward(self, x, day_idx, states=None, return_state=False):
@@ -143,3 +143,17 @@ class GRUDecoder(nn.Module):
         # (e.g. 20% of 512 input features)
         if self.input_dropout > 0:
             x = self.day_layer_dropout(x)
+
+        # Since patch size is 14, perform input concat operation
+        if self.patch_size > 0:
+
+            x = x.unsqueeze(1)              # [batches, 1, timesteps, feature_dim]
+
+            #Pput timesteps in the last slot because unfold works on the last dim
+            x = x.permute(0, 3, 1, 2)       # [batches, feature_dim, 1, timesteps]
+
+            # Extract patches using unfold (sliding window)
+            x_unfold = x.unfold(3, self.patch_size, self.patch_stride)  # [batches, feature_dum, num_patches, patch_size]
+
+            # Remove dummy height dimensions and rearrange dimensions
+            x_unfold = x_unfold.squeeze(2)          # [batches, num_patches, patch_size, feature_dim]
