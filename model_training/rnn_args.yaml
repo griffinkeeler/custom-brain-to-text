@@ -9,7 +9,11 @@ model:
   input_network:
     input_layer_dropout: 0.2 # dropout rate for the input layer
 
+output_dir: trained_models/baseline_rnn # directory to save the trained model and logs
+
 num_training_batches: 10000
+
+seed: 10 # random seed for reproducibility
 
 dataset:
   batch_size: 8
